@@ -1,0 +1,13 @@
+{
+    "name": "simple-aa-dapp",
+    "private": true,
+    "scripts": {
+        "contracts": "pnpm --filter contracts",
+        "ui": "pnpm --filter ui"
+    },
+    "pnpm": {
+        "overrides": {
+            "ethers": "^6.14.0"
+        }
+    }
+}
