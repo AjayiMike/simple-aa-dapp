@@ -11,6 +11,8 @@ import {
 import { Copy, LogOut, CheckCircle } from "lucide-react";
 import { useMagic } from "@/providers/MagicProvider";
 import { shortenAddress } from "@/utils/common";
+import useSmartAccount from "@/hooks/useSmartAccount";
+import useBalance from "@/hooks/useBalance";
 
 interface ConnectedProps {
     isOpen: boolean;
@@ -20,8 +22,14 @@ interface ConnectedProps {
 const Connected: React.FC<ConnectedProps> = ({ isOpen, handleClose }) => {
     const { logout, user } = useMagic();
 
-    const smartWalletAddress = "0x8765...4321";
-    const smartWalletBalance = "4.56 ETH";
+    const smartAccount = useSmartAccount();
+
+    const { formattedBalance: formattedSmartAccountBalance } = useBalance(
+        smartAccount?.address
+    );
+    const { formattedBalance: formattedEmbeddedWalletBalance } = useBalance(
+        user?.publicAddress as string
+    );
 
     if (!user) {
         return null;
@@ -58,7 +66,9 @@ const Connected: React.FC<ConnectedProps> = ({ isOpen, handleClose }) => {
                                     <Copy className="h-4 w-4" />
                                 </Button>
                             </div>
-                            <p className="text-sm font-semibold">0.42 ETH</p>
+                            <p className="text-sm font-semibold">
+                                {formattedEmbeddedWalletBalance} ETH
+                            </p>
                         </div>
                         <hr />
                         <div>
@@ -67,14 +77,15 @@ const Connected: React.FC<ConnectedProps> = ({ isOpen, handleClose }) => {
                             </p>
                             <div className="flex items-center justify-between">
                                 <p className="font-mono text-sm">
-                                    {smartWalletAddress}
+                                    {smartAccount?.address &&
+                                        shortenAddress(smartAccount.address)}
                                 </p>
                                 <Button variant="ghost" size="icon">
                                     <Copy className="h-4 w-4" />
                                 </Button>
                             </div>
                             <p className="text-sm font-semibold">
-                                {smartWalletBalance}
+                                {formattedSmartAccountBalance} ETH
                             </p>
                         </div>
                     </div>
