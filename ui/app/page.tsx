@@ -1,3 +1,6 @@
+"use client";
+
+import * as React from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { MintTokens } from "@/components/MintTokens";
 import { TransferTokens } from "@/components/TransferTokens";
@@ -6,8 +9,11 @@ import { BurnTokens } from "@/components/BurnTokens";
 
 export default function Home() {
     return (
-        <main className="flex min-h-screen flex-col items-center justify-center p-4 md:p-8 lg:p-12">
-            <Tabs defaultValue="mint" className="w-full max-w-lg">
+        <div className="flex flex-col items-center justify-center">
+            <Tabs
+                defaultValue="mint"
+                className="w-full max-w-lg rounded-lg border shadow-lg"
+            >
                 <TabsList className="grid w-full grid-cols-4">
                     <TabsTrigger value="mint">Mint</TabsTrigger>
                     <TabsTrigger value="transfer">Transfer</TabsTrigger>
@@ -27,6 +33,6 @@ export default function Home() {
                     <BurnTokens />
                 </TabsContent>
             </Tabs>
-        </main>
+        </div>
     );
 }
