@@ -1,4 +1,5 @@
 import { Dispatch, SetStateAction } from "react";
+import { Address, Hex } from "viem";
 
 export type LoginProps = {
     token: string;

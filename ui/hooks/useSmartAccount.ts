@@ -1,5 +1,4 @@
-import { toSafeSmartAccount } from "permissionless/accounts";
-import { entryPoint07Address, SmartAccount } from "viem/account-abstraction";
+import { SmartAccount, toCoinbaseSmartAccount } from "viem/account-abstraction";
 import usePublicClient from "./usePublicClient";
 import { useEffect, useState } from "react";
 import { useMagic } from "@/providers/MagicProvider";
@@ -11,16 +10,15 @@ const useSmartAccount = () => {
     const walletClient = useWalletClient();
     const magic = useMagic();
     useEffect(() => {
-        if (!publicClient || !walletClient || !magic.user?.publicAddress)
+        if (
+            !publicClient ||
+            !walletClient?.account ||
+            !magic.user?.publicAddress
+        )
             return;
-        toSafeSmartAccount({
+        toCoinbaseSmartAccount({
             client: publicClient,
-            owners: [walletClient],
-            entryPoint: {
-                address: entryPoint07Address,
-                version: "0.7",
-            },
-            version: "1.4.1",
+            owners: [walletClient.account.address],
         }).then((account) => {
             setSmartAccount(account);
         });
