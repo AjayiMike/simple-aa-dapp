@@ -1,8 +1,10 @@
 import { useQuery } from "@tanstack/react-query";
 import { Address, formatEther } from "viem";
 import usePublicClient from "./usePublicClient";
+import useSmartAccount from "./useSmartAccount";
 
-const useBalance = (account?: string) => {
+const useBalance = () => {
+    const { address } = useSmartAccount();
     const publicClient = usePublicClient();
 
     const {
@@ -13,14 +15,14 @@ const useBalance = (account?: string) => {
         isError,
         error,
     } = useQuery({
-        queryKey: ["ETHBalance", account],
+        queryKey: ["ETHBalance", address],
         queryFn: async () => {
-            if (!account) return BigInt(0);
+            if (!address) return BigInt(0);
             return publicClient?.getBalance({
-                address: account as Address,
+                address: address as Address,
             });
         },
-        enabled: !!account && !!publicClient,
+        enabled: !!address && !!publicClient,
         refetchInterval: 4000,
     });
 
