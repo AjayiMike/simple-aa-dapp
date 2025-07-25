@@ -1,10 +1,19 @@
 import { useMagic } from "@/providers/MagicProvider";
 import { useEffect, useState } from "react";
-import { createWalletClient, custom, Hex, WalletClient } from "viem";
+import {
+    Account,
+    Chain,
+    createWalletClient,
+    custom,
+    Hex,
+    Transport,
+    WalletClient,
+} from "viem";
 import { sepolia } from "viem/chains";
 
 const useWalletClient = () => {
-    const [walletClient, setWalletClient] = useState<WalletClient>();
+    const [walletClient, setWalletClient] =
+        useState<WalletClient<Transport, Chain | undefined, Account>>();
     const magic = useMagic();
 
     useEffect(() => {
