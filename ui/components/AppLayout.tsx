@@ -8,6 +8,9 @@ import { useMagic } from "@/providers/MagicProvider";
 import { Toaster } from "./ui/sonner";
 import Connected from "./Connected";
 import Loading from "./Loading";
+import { useSimpleAATokenBalance } from "@/hooks/useSimpleAATokenBalance";
+import useBalance from "@/hooks/useBalance";
+import { formatEther } from "viem";
 
 const AppLayout: FC<{ children: React.ReactNode }> = ({ children }) => {
     const [isDisconnectedModalOpen, setIsDisconnectedModalOpen] =
@@ -21,6 +24,12 @@ const AppLayout: FC<{ children: React.ReactNode }> = ({ children }) => {
         return <Loading />;
     }
 
+    const { balance: tokenBalance, isLoading: isTokenBalanceLoading } =
+        useSimpleAATokenBalance();
+
+    const { balance: ethBalance, isLoading: isEthBalanceLoading } =
+        useBalance();
+
     return (
         <Fragment>
             <div className="flex flex-col min-h-screen container mx-auto">
@@ -28,13 +37,25 @@ const AppLayout: FC<{ children: React.ReactNode }> = ({ children }) => {
                     <h1 className="text-xl font-semibold">Simple AA dApp</h1>
                     <div className="flex">
                         {isLoggedIn ? (
-                            <Button
-                                onClick={() => setIsConnectedModalOpen(true)}
-                                className="flex items-center gap-1"
-                            >
-                                <User className="mr-2 h-4 w-4" />
-                                <span>Account</span>
-                            </Button>
+                            <div className="flex items-center gap-1">
+                                <div className="flex items-center gap-1">
+                                    <span>{`${formatEther(
+                                        tokenBalance ?? BigInt(0)
+                                    )} SAT`}</span>
+                                    <span>{`${formatEther(
+                                        ethBalance ?? BigInt(0)
+                                    )} ETH`}</span>
+                                </div>
+                                <Button
+                                    onClick={() =>
+                                        setIsConnectedModalOpen(true)
+                                    }
+                                    className="flex items-center gap-1"
+                                >
+                                    <User className="mr-2 h-4 w-4" />
+                                    <span>Account</span>
+                                </Button>
+                            </div>
                         ) : (
                             <Button
                                 onClick={() => setIsDisconnectedModalOpen(true)}

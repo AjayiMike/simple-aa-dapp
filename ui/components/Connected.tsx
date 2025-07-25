@@ -11,8 +11,8 @@ import {
 import { Copy, LogOut, CheckCircle } from "lucide-react";
 import { useMagic } from "@/providers/MagicProvider";
 import { shortenAddress } from "@/utils/common";
-import useSmartAccount from "@/hooks/useSmartAccount";
 import useBalance from "@/hooks/useBalance";
+import useSmartAccount from "@/hooks/useSmartAccount";
 
 interface ConnectedProps {
     isOpen: boolean;
@@ -22,11 +22,16 @@ interface ConnectedProps {
 const Connected: React.FC<ConnectedProps> = ({ isOpen, handleClose }) => {
     const { logout, user } = useMagic();
 
-    const smartAccount = useSmartAccount();
+    const {
+        address: smartAccountAddress,
+        isDeployed,
+        getInitCode,
+    } = useSmartAccount();
 
-    const { formattedBalance: formattedSmartAccountBalance } = useBalance(
-        smartAccount?.address
-    );
+    // console.log({ address, isDeployed, getInitCode });
+
+    const { formattedBalance: formattedSmartAccountBalance } =
+        useBalance(smartAccountAddress);
     const { formattedBalance: formattedEmbeddedWalletBalance } = useBalance(
         user?.publicAddress as string
     );
@@ -77,8 +82,8 @@ const Connected: React.FC<ConnectedProps> = ({ isOpen, handleClose }) => {
                             </p>
                             <div className="flex items-center justify-between">
                                 <p className="font-mono text-sm">
-                                    {smartAccount?.address &&
-                                        shortenAddress(smartAccount.address)}
+                                    {smartAccountAddress &&
+                                        shortenAddress(smartAccountAddress)}
                                 </p>
                                 <Button variant="ghost" size="icon">
                                     <Copy className="h-4 w-4" />
