@@ -16,32 +16,70 @@ import useSendUserOperation from "@/hooks/useSendUserOperation";
 import useWalletClient from "@/hooks/useWalletClient";
 import useSmartAccount from "@/hooks/useSmartAccount";
 import usePublicClient from "@/hooks/usePublicClient";
-import { Address, parseEther } from "viem";
+import { Address, isAddress, parseEther } from "viem";
 import { simpleAATokenAbi } from "@/abis";
+import { Loader2 } from "lucide-react";
+import { toast } from "sonner";
+import { SuccessModal } from "./SuccessModal";
 
 export function DisperseTokens() {
-    const [addressesAndAmounts, setAddressesAndAmounts] = useState<
-        [string, string][]
-    >([]);
+    const [inputValue, setInputValue] = useState<string>("");
     const publicClient = usePublicClient();
     const smartAccount = useSmartAccount();
     const walletClient = useWalletClient();
     const sendUserOperation = useSendUserOperation();
+    const [isDispersing, setIsDispersing] = useState<boolean>(false);
+    const [showSuccessModal, setShowSuccessModal] = useState<boolean>(false);
+    const [userOperationHash, setUserOperationHash] = useState<string>("");
 
     const handleDisperse = async () => {
+        setIsDispersing(true);
         try {
-            const addresses = addressesAndAmounts.map(([address]) => address);
-            const amounts = addressesAndAmounts.map(([, amount]) =>
-                BigInt(parseEther(amount))
-            );
+            const lines = inputValue
+                .split("\n")
+                .filter((line) => line.trim() !== "");
+            const addresses: Address[] = [];
+            const amounts: bigint[] = [];
+
+            for (let i = 0; i < lines.length; i++) {
+                const [address, amountStr] = lines[i].split(",");
+                if (!address || !amountStr) {
+                    toast.error(
+                        `Line ${i + 1}: Invalid format. Use 'address,amount'.`
+                    );
+                    setIsDispersing(false);
+                    return;
+                }
+                if (!isAddress(address.trim())) {
+                    toast.error(`Line ${i + 1}: Invalid address.`);
+                    setIsDispersing(false);
+                    return;
+                }
+                try {
+                    const amount = parseEther(amountStr.trim());
+                    if (amount <= BigInt(0)) {
+                        toast.error(`Line ${i + 1}: Amount must be positive.`);
+                        setIsDispersing(false);
+                        return;
+                    }
+                    addresses.push(address.trim() as Address);
+                    amounts.push(amount);
+                } catch (error) {
+                    toast.error(`Line ${i + 1}: Invalid amount.`);
+                    setIsDispersing(false);
+                    return;
+                }
+            }
+
             if (
                 !smartAccount.address ||
                 !walletClient ||
                 !publicClient ||
-                !addresses.length ||
-                !amounts.length
-            )
+                !addresses.length
+            ) {
+                setIsDispersing(false);
                 return;
+            }
 
             const calls = addresses.map((address, index) => ({
                 contractAddress: process.env
@@ -56,57 +94,71 @@ export function DisperseTokens() {
             const userOperationHash = await sendUserOperation(calls);
 
             console.log("Sent user operation hash: ", userOperationHash);
+            setUserOperationHash(userOperationHash);
+            setShowSuccessModal(true);
+            setInputValue("");
         } catch (error) {
             console.error("Error sending user operation: ", error);
+            toast.error("Failed to disperse tokens.");
+        } finally {
+            setIsDispersing(false);
         }
     };
     return (
-        <Card>
-            <CardHeader>
-                <CardTitle>Disperse Tokens</CardTitle>
-                <CardDescription>
-                    Send tokens to multiple addresses at once. Enter one address
-                    and amount per line, separated by a comma.
-                </CardDescription>
-            </CardHeader>
-            <CardContent>
-                <div className="grid w-full items-center gap-4">
-                    <div className="flex flex-col space-y-1.5">
-                        <Label htmlFor="disperse-data">
-                            Addresses and Amounts
-                        </Label>
-                        <Textarea
-                            id="disperse-data"
-                            placeholder="0x...,100,
+        <>
+            <SuccessModal
+                isOpen={showSuccessModal}
+                onClose={() => setShowSuccessModal(false)}
+                userOperationHash={userOperationHash}
+            />
+            <Card>
+                <CardHeader>
+                    <CardTitle>Disperse Tokens</CardTitle>
+                    <CardDescription>
+                        Send tokens to multiple addresses at once. Enter one
+                        address and amount per line, separated by a comma.
+                    </CardDescription>
+                </CardHeader>
+                <CardContent>
+                    <div className="grid w-full items-center gap-4">
+                        <div className="flex flex-col space-y-1.5">
+                            <Label htmlFor="disperse-data">
+                                Addresses and Amounts
+                            </Label>
+                            <Textarea
+                                id="disperse-data"
+                                placeholder="0x...,100,
 0x...,200"
-                            value={addressesAndAmounts
-                                .map(
-                                    ([address, amount]) =>
-                                        `${address},${amount}`
-                                )
-                                .join("\n")}
-                            onChange={(e) => {
-                                const lines = e.target.value.split("\n");
-                                setAddressesAndAmounts(
-                                    lines.map(
-                                        (line) =>
-                                            line.split(",") as [string, string]
-                                    )
-                                );
-                            }}
-                        />
+                                value={inputValue}
+                                onChange={(e) => setInputValue(e.target.value)}
+                            />
+                        </div>
                     </div>
-                </div>
-            </CardContent>
-            <CardFooter className="flex justify-between">
-                <Button
-                    variant="outline"
-                    onClick={() => setAddressesAndAmounts([])}
-                >
-                    Cancel
-                </Button>
-                <Button onClick={handleDisperse}>Disperse</Button>
-            </CardFooter>
-        </Card>
+                </CardContent>
+                <CardFooter className="flex justify-between">
+                    <Button
+                        variant="outline"
+                        onClick={() => setInputValue("")}
+                        disabled={isDispersing}
+                    >
+                        Cancel
+                    </Button>
+                    <Button
+                        onClick={handleDisperse}
+                        disabled={isDispersing}
+                        className="flex items-center gap-1"
+                    >
+                        {isDispersing ? (
+                            <>
+                                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                                Dispersing...
+                            </>
+                        ) : (
+                            "Disperse"
+                        )}
+                    </Button>
+                </CardFooter>
+            </Card>
+        </>
     );
 }

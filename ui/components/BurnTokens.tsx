@@ -11,13 +11,16 @@ import {
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
-import { useState } from "react";
+import { ChangeEvent, useState } from "react";
 import useSendUserOperation from "@/hooks/useSendUserOperation";
 import useSmartAccount from "@/hooks/useSmartAccount";
 import useWalletClient from "@/hooks/useWalletClient";
 import usePublicClient from "@/hooks/usePublicClient";
 import { Address, parseEther } from "viem";
 import { simpleAATokenAbi } from "@/abis";
+import { Loader2 } from "lucide-react";
+import { toast } from "sonner";
+import { SuccessModal } from "./SuccessModal";
 
 export function BurnTokens() {
     const [amount, setAmount] = useState<string>("");
@@ -25,8 +28,20 @@ export function BurnTokens() {
     const smartAccount = useSmartAccount();
     const walletClient = useWalletClient();
     const sendUserOperation = useSendUserOperation();
+    const [isBurning, setIsBurning] = useState<boolean>(false);
+    const [showSuccessModal, setShowSuccessModal] = useState<boolean>(false);
+    const [userOperationHash, setUserOperationHash] = useState<string>("");
+
+    const handleAmountChange = (e: ChangeEvent<HTMLInputElement>) => {
+        const value = e.target.value;
+        const regex = /^\d*\.?\d*$/;
+        if (regex.test(value)) {
+            setAmount(value);
+        }
+    };
 
     const handleBurn = async () => {
+        setIsBurning(true);
         try {
             const amountBigInt = BigInt(parseEther(amount));
             if (
@@ -48,35 +63,63 @@ export function BurnTokens() {
             ]);
 
             console.log("Sent user operation hash: ", userOperationHash);
+            setUserOperationHash(userOperationHash);
+            setShowSuccessModal(true);
+            setAmount("");
         } catch (error) {
             console.error("Error sending user operation: ", error);
+            toast.error("Error burning tokens.");
+        } finally {
+            setIsBurning(false);
         }
     };
     return (
-        <Card>
-            <CardHeader>
-                <CardTitle>Burn Tokens</CardTitle>
-                <CardDescription>
-                    Permanently remove tokens from the total supply.
-                </CardDescription>
-            </CardHeader>
-            <CardContent>
-                <div className="grid w-full items-center gap-4">
-                    <div className="flex flex-col space-y-1.5">
-                        <Label htmlFor="amount">Amount</Label>
-                        <Input
-                            id="amount"
-                            placeholder="Amount of tokens to burn"
-                            value={amount}
-                            onChange={(e) => setAmount(e.target.value)}
-                        />
+        <>
+            <SuccessModal
+                isOpen={showSuccessModal}
+                onClose={() => setShowSuccessModal(false)}
+                userOperationHash={userOperationHash}
+            />
+            <Card>
+                <CardHeader>
+                    <CardTitle>Burn Tokens</CardTitle>
+                    <CardDescription>
+                        Permanently remove tokens from the total supply.
+                    </CardDescription>
+                </CardHeader>
+                <CardContent>
+                    <div className="grid w-full items-center gap-4">
+                        <div className="flex flex-col space-y-1.5">
+                            <Label htmlFor="amount">Amount</Label>
+                            <Input
+                                id="amount"
+                                placeholder="Amount of tokens to burn"
+                                value={amount}
+                                onChange={handleAmountChange}
+                            />
+                        </div>
                     </div>
-                </div>
-            </CardContent>
-            <CardFooter className="flex justify-between">
-                <Button variant="outline">Cancel</Button>
-                <Button onClick={handleBurn}>Burn</Button>
-            </CardFooter>
-        </Card>
+                </CardContent>
+                <CardFooter className="flex justify-between">
+                    <Button variant="outline" onClick={() => setAmount("")}>
+                        Cancel
+                    </Button>
+                    <Button
+                        onClick={handleBurn}
+                        disabled={isBurning}
+                        className="flex items-center gap-1"
+                    >
+                        {isBurning ? (
+                            <>
+                                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                                Burning...
+                            </>
+                        ) : (
+                            "Burn"
+                        )}
+                    </Button>
+                </CardFooter>
+            </Card>
+        </>
     );
 }
