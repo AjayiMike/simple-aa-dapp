@@ -61,13 +61,11 @@ export function BurnTokens() {
                     args: [amountBigInt],
                 },
             ]);
-
-            console.log("Sent user operation hash: ", userOperationHash);
             setUserOperationHash(userOperationHash);
             setShowSuccessModal(true);
             setAmount("");
         } catch (error) {
-            console.error("Error sending user operation: ", error);
+            console.log("Error sending user operation: ", error);
             toast.error("Error burning tokens.");
         } finally {
             setIsBurning(false);

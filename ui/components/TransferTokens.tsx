@@ -68,13 +68,12 @@ export function TransferTokens() {
                 },
             ]);
 
-            console.log("Sent user operation hash: ", userOperationHash);
             setUserOperationHash(userOperationHash);
             setShowSuccessModal(true);
             setRecipientAddress("");
             setAmount("");
         } catch (error) {
-            console.error("Error sending user operation: ", error);
+            console.log("Error sending user operation: ", error);
             toast.error("Error transferring tokens.");
         } finally {
             setIsTransferring(false);

@@ -65,6 +65,7 @@ export function DisperseTokens() {
                     addresses.push(address.trim() as Address);
                     amounts.push(amount);
                 } catch (error) {
+                    console.log("Error parsing amount: ", error);
                     toast.error(`Line ${i + 1}: Invalid amount.`);
                     setIsDispersing(false);
                     return;
@@ -89,16 +90,13 @@ export function DisperseTokens() {
                 args: [address, amounts[index]],
             }));
 
-            console.log("Calls: ", calls);
-
             const userOperationHash = await sendUserOperation(calls);
 
-            console.log("Sent user operation hash: ", userOperationHash);
             setUserOperationHash(userOperationHash);
             setShowSuccessModal(true);
             setInputValue("");
         } catch (error) {
-            console.error("Error sending user operation: ", error);
+            console.log("Error sending user operation: ", error);
             toast.error("Failed to disperse tokens.");
         } finally {
             setIsDispersing(false);
