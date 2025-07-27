@@ -64,9 +64,18 @@ export function MintTokens() {
             setUserOperationHash(userOperationHash);
             setShowSuccessModal(true);
             setAmount("");
-        } catch (error) {
+        } catch (error: unknown) {
             console.log("Error sending user operation: ", error);
-            toast.error("Error minting tokens.");
+            if (
+                error instanceof Error &&
+                error.message.includes("AA21 didn't pay prefund")
+            ) {
+                toast.error(
+                    "Error minting tokens. Insufficient balance to pay for the user operation."
+                );
+                return;
+            }
+            toast.error(`Error minting tokens: ${error}`);
         } finally {
             setIsMinting(false);
         }

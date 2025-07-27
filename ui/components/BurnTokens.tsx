@@ -64,9 +64,18 @@ export function BurnTokens() {
             setUserOperationHash(userOperationHash);
             setShowSuccessModal(true);
             setAmount("");
-        } catch (error) {
+        } catch (error: unknown) {
             console.log("Error sending user operation: ", error);
-            toast.error("Error burning tokens.");
+            if (
+                error instanceof Error &&
+                error.message.includes("AA21 didn't pay prefund")
+            ) {
+                toast.error(
+                    "Error burning tokens. Insufficient balance to pay for the user operation."
+                );
+                return;
+            }
+            toast.error(`Error burning tokens: ${error}`);
         } finally {
             setIsBurning(false);
         }

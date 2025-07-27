@@ -72,9 +72,18 @@ export function TransferTokens() {
             setShowSuccessModal(true);
             setRecipientAddress("");
             setAmount("");
-        } catch (error) {
+        } catch (error: unknown) {
             console.log("Error sending user operation: ", error);
-            toast.error("Error transferring tokens.");
+            if (
+                error instanceof Error &&
+                error.message.includes("AA21 didn't pay prefund")
+            ) {
+                toast.error(
+                    "Error transferring tokens. Insufficient balance to pay for the user operation."
+                );
+                return;
+            }
+            toast.error(`Error transferring tokens: ${error}`);
         } finally {
             setIsTransferring(false);
         }

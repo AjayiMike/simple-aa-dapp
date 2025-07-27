@@ -95,9 +95,18 @@ export function DisperseTokens() {
             setUserOperationHash(userOperationHash);
             setShowSuccessModal(true);
             setInputValue("");
-        } catch (error) {
+        } catch (error: unknown) {
             console.log("Error sending user operation: ", error);
-            toast.error("Failed to disperse tokens.");
+            if (
+                error instanceof Error &&
+                error.message.includes("AA21 didn't pay prefund")
+            ) {
+                toast.error(
+                    "Error dispersing tokens. Insufficient balance to pay for the user operation."
+                );
+                return;
+            }
+            toast.error(`Error dispersing tokens: ${error}`);
         } finally {
             setIsDispersing(false);
         }
