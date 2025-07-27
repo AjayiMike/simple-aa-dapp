@@ -1,5 +1,5 @@
 import { useCallback } from "react";
-import { Abi, AbiItem, Address, encodeFunctionData, numberToHex } from "viem";
+import { Abi, Address, encodeFunctionData, hexToBigInt } from "viem";
 import useSmartAccount from "./useSmartAccount";
 import { IUserOperation } from "@/types/account-abstraction";
 import {
@@ -11,17 +11,19 @@ import {
 } from "@/utils/account-abstraction";
 import { entryPointAddress } from "@/constants/config";
 import useWalletClient from "./useWalletClient";
+import useGasSponsorship from "./useGasSponsorship";
 
 type SendUserOperationArgs = {
     contractAddress: Address;
     abi: Abi;
     functionName: string;
-    args: any[];
+    args: unknown[];
 };
 
 const useSendUserOperation = () => {
     const smartAccount = useSmartAccount();
     const walletClient = useWalletClient();
+    const { gasSponsorship: isGasSponsorshipEnabled } = useGasSponsorship();
 
     return useCallback(
         async (calls: SendUserOperationArgs[]) => {
@@ -48,7 +50,7 @@ const useSendUserOperation = () => {
 
             const userOperation: Partial<IUserOperation> = {
                 sender: smartAccount.address,
-                nonce: numberToHex(nonce),
+                nonce: nonce,
                 initCode,
                 callData: userOpCallData,
                 signature: `0xfffffffffffffffffffffffffffffff0000000000000000000000000000000007aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa1c`, //dummy signature
@@ -59,32 +61,53 @@ const useSendUserOperation = () => {
                 entryPointAddress
             );
 
-            userOperation.callGasLimit = userOpGasPrice.callGasLimit as any;
-            userOperation.preVerificationGas =
-                userOpGasPrice.preVerificationGas as any;
-            userOperation.verificationGasLimit =
-                userOpGasPrice.verificationGasLimit as any;
-
-            const userOpSponsorshipData = await getUserOperationSponsorshipData(
-                userOperation,
-                entryPointAddress
+            userOperation.callGasLimit = hexToBigInt(
+                userOpGasPrice.callGasLimit
+            );
+            userOperation.preVerificationGas = hexToBigInt(
+                userOpGasPrice.preVerificationGas
+            );
+            userOperation.verificationGasLimit = hexToBigInt(
+                userOpGasPrice.verificationGasLimit
             );
 
-            userOperation.paymasterAndData =
-                userOpSponsorshipData.paymasterAndData as any;
-            userOperation.verificationGasLimit =
-                userOpSponsorshipData.verificationGasLimit as any;
-            userOperation.preVerificationGas =
-                userOpSponsorshipData.preVerificationGas as any;
-            userOperation.callGasLimit =
-                userOpSponsorshipData.callGasLimit as any;
+            if (isGasSponsorshipEnabled) {
+                const userOpSponsorshipData =
+                    await getUserOperationSponsorshipData(
+                        userOperation,
+                        entryPointAddress
+                    );
 
-            userOperation.maxFeePerGas = userOpGasPrice.maxFeePerGas as any;
-            userOperation.maxPriorityFeePerGas =
-                userOpGasPrice.maxPriorityFeePerGas as any;
+                userOperation.paymasterAndData =
+                    userOpSponsorshipData.paymasterAndData;
+                userOperation.verificationGasLimit = hexToBigInt(
+                    userOpSponsorshipData.verificationGasLimit
+                );
+                userOperation.preVerificationGas = hexToBigInt(
+                    userOpSponsorshipData.preVerificationGas
+                );
+                userOperation.callGasLimit = hexToBigInt(
+                    userOpSponsorshipData.callGasLimit
+                );
+
+                userOperation.maxFeePerGas = hexToBigInt(
+                    userOpGasPrice.maxFeePerGas
+                );
+                userOperation.maxPriorityFeePerGas = hexToBigInt(
+                    userOpGasPrice.maxPriorityFeePerGas
+                );
+            } else {
+                userOperation.maxFeePerGas = hexToBigInt(
+                    userOpGasPrice?.maxFeePerGas
+                );
+                userOperation.maxPriorityFeePerGas = hexToBigInt(
+                    userOpGasPrice?.maxPriorityFeePerGas
+                );
+                userOperation.paymasterAndData = "0x";
+            }
 
             const userOpHash = await getUserOpHash(
-                userOperation,
+                userOperation as Omit<IUserOperation, "signature">,
                 entryPointAddress,
                 walletClient
             );
@@ -93,9 +116,12 @@ const useSendUserOperation = () => {
 
             userOperation.signature = signature;
 
-            return await sendUserOperation(userOperation, entryPointAddress);
+            return await sendUserOperation(
+                userOperation as IUserOperation,
+                entryPointAddress
+            );
         },
-        [walletClient, smartAccount?.address]
+        [walletClient, smartAccount, isGasSponsorshipEnabled]
     );
 };
 

@@ -110,7 +110,7 @@ const MagicProvider = ({ children }: { children: ReactNode }) => {
             setUser(result.magic.userMetadata);
             setIsLoggedIn(true);
         } catch (err) {
-            console.error("error signing in", err);
+            console.log("error signing in", err);
             toast.error("Error logging in. " + (err as Error).message);
         } finally {
             localStorage.removeItem("login-in-progress");
@@ -148,7 +148,7 @@ const MagicProvider = ({ children }: { children: ReactNode }) => {
             setUser(null);
             setIsLoggedIn(false);
         } catch (error) {
-            console.error("error logging out", error);
+            console.log("error logging out", error);
         }
     }, [magic]);
 

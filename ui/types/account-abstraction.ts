@@ -3,7 +3,7 @@ import { Address, Hex } from "viem";
 // entrypoint v0.6 user operation type
 export interface IUserOperation {
     sender: Address;
-    nonce: Hex;
+    nonce: bigint;
     initCode: Hex;
     callData: Hex;
     maxFeePerGas: bigint;

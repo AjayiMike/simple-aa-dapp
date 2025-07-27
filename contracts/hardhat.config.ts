@@ -6,8 +6,6 @@ dotenv.config();
 
 const { PRIVATE_KEY, RPC_URL, CHAIN_ID, ETHERSCAN_KEY } = process.env;
 
-console.log({ PRIVATE_KEY, RPC_URL, CHAIN_ID, ETHERSCAN_KEY });
-
 const config: HardhatUserConfig = {
     solidity: "0.8.28",
     networks: {

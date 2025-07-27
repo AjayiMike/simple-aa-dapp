@@ -3,6 +3,7 @@ import {
     entryPointAddress,
     simpleAccountFactoryAddress,
 } from "@/constants/config";
+import { IUserOperation } from "@/types/account-abstraction";
 import {
     Address,
     ContractFunctionExecutionErrorType,
@@ -10,8 +11,8 @@ import {
     encodeAbiParameters,
     encodeFunctionData,
     Hex,
-    hexToBigInt,
     keccak256,
+    numberToHex,
     PublicClient,
     WalletClient,
 } from "viem";
@@ -117,8 +118,8 @@ export const getSmartAccountNonce = async (
 };
 
 export const getUserOperationGasPrice = async (
-    userOperation: any,
-    entryPoint: any
+    userOperation: Partial<IUserOperation>,
+    entryPoint: Address
 ): Promise<{
     callGasLimit: Hex;
     preVerificationGas: Hex;
@@ -126,11 +127,10 @@ export const getUserOperationGasPrice = async (
     maxFeePerGas: Hex;
     maxPriorityFeePerGas: Hex;
 }> => {
-    console.log({
-        userOperation,
-        entryPoint,
-        r: process.env.NEXT_PUBLIC_BUNDLER_URL,
-    });
+    const userOpPayload = {
+        ...userOperation,
+        nonce: numberToHex(userOperation.nonce!),
+    };
 
     const response = await fetch(
         process.env.NEXT_PUBLIC_BUNDLER_URL as string,
@@ -142,7 +142,7 @@ export const getUserOperationGasPrice = async (
             body: JSON.stringify({
                 jsonrpc: "2.0",
                 method: "eth_estimateUserOperationGas",
-                params: [userOperation, entryPoint],
+                params: [userOpPayload, entryPoint],
                 id: 1,
             }),
         }
@@ -155,14 +155,22 @@ export const getUserOperationGasPrice = async (
 };
 
 export const getUserOperationSponsorshipData = async (
-    userOperation: any,
-    entryPoint: any
+    userOperation: Partial<IUserOperation>,
+    entryPoint: Address
 ): Promise<{
     callGasLimit: Hex;
     paymasterAndData: Hex;
     preVerificationGas: Hex;
     verificationGasLimit: Hex;
 }> => {
+    const userOpPayload = {
+        ...userOperation,
+        nonce: numberToHex(userOperation.nonce!),
+        callGasLimit: numberToHex(userOperation.callGasLimit!),
+        verificationGasLimit: numberToHex(userOperation.verificationGasLimit!),
+        preVerificationGas: numberToHex(userOperation.preVerificationGas!),
+    };
+
     const response = await fetch(
         process.env.NEXT_PUBLIC_PAYMASTER_URL as string,
         {
@@ -173,7 +181,7 @@ export const getUserOperationSponsorshipData = async (
             body: JSON.stringify({
                 jsonrpc: "2.0",
                 method: "pm_sponsorUserOperation",
-                params: [userOperation, entryPoint],
+                params: [userOpPayload, entryPoint],
                 id: 1,
             }),
         }
@@ -186,9 +194,19 @@ export const getUserOperationSponsorshipData = async (
 };
 
 export const sendUserOperation = async (
-    userOperation: any,
-    entryPoint: string
+    userOperation: IUserOperation,
+    entryPoint: Address
 ): Promise<Hex> => {
+    const userOpPayload = {
+        ...userOperation,
+        nonce: numberToHex(userOperation.nonce),
+        callGasLimit: numberToHex(userOperation.callGasLimit),
+        preVerificationGas: numberToHex(userOperation.preVerificationGas),
+        verificationGasLimit: numberToHex(userOperation.verificationGasLimit),
+        maxFeePerGas: numberToHex(userOperation.maxFeePerGas),
+        maxPriorityFeePerGas: numberToHex(userOperation.maxPriorityFeePerGas),
+    };
+
     const response = await fetch(
         process.env.NEXT_PUBLIC_BUNDLER_URL as string,
         {
@@ -199,7 +217,7 @@ export const sendUserOperation = async (
             body: JSON.stringify({
                 jsonrpc: "2.0",
                 method: "eth_sendUserOperation",
-                params: [userOperation, entryPoint],
+                params: [userOpPayload, entryPoint],
                 id: 1,
             }),
         }
@@ -208,33 +226,20 @@ export const sendUserOperation = async (
         throw new Error("Failed to send user operation");
     }
     const data = await response.json();
+    if (data.error) {
+        throw new Error(data.error.message);
+    }
     return data.result;
 };
 
-export const formatUserOperationForHashing = (userOperation: any) => {
-    return {
-        sender: userOperation.sender,
-        nonce: hexToBigInt(userOperation.nonce),
-        initCode: userOperation.initCode,
-        callData: userOperation.callData,
-        callGasLimit: hexToBigInt(userOperation.callGasLimit),
-        verificationGasLimit: hexToBigInt(userOperation.verificationGasLimit),
-        preVerificationGas: hexToBigInt(userOperation.preVerificationGas),
-        maxFeePerGas: hexToBigInt(userOperation.maxFeePerGas),
-        maxPriorityFeePerGas: hexToBigInt(userOperation.maxPriorityFeePerGas),
-        paymasterAndData: userOperation.paymasterAndData,
-    };
-};
-
 export const getUserOpHash = async (
-    userOperation: any,
+    userOperation: Omit<IUserOperation, "signature">,
     entryPointAddress: Address,
     walletClient: WalletClient
 ) => {
     if (!walletClient.chain || !walletClient.account)
         throw new Error("Wallet client chain or account not found");
     const chainId = BigInt(walletClient.chain.id);
-    const formattedUserOp = formatUserOperationForHashing(userOperation);
     const packedUserOp = encodeAbiParameters(
         [
             { type: "address" },
@@ -249,16 +254,16 @@ export const getUserOpHash = async (
             { type: "bytes32" },
         ],
         [
-            formattedUserOp.sender,
-            formattedUserOp.nonce,
-            keccak256(formattedUserOp.initCode),
-            keccak256(formattedUserOp.callData),
-            formattedUserOp.callGasLimit,
-            formattedUserOp.verificationGasLimit,
-            formattedUserOp.preVerificationGas,
-            formattedUserOp.maxFeePerGas,
-            formattedUserOp.maxPriorityFeePerGas,
-            keccak256(formattedUserOp.paymasterAndData),
+            userOperation.sender,
+            userOperation.nonce,
+            keccak256(userOperation.initCode),
+            keccak256(userOperation.callData),
+            userOperation.callGasLimit,
+            userOperation.verificationGasLimit,
+            userOperation.preVerificationGas,
+            userOperation.maxFeePerGas,
+            userOperation.maxPriorityFeePerGas,
+            keccak256(userOperation.paymasterAndData ?? "0x"),
         ]
     );
     return keccak256(
