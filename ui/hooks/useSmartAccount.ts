@@ -36,7 +36,6 @@ const useSmartAccount = () => {
     }, [publicClient, walletClient, magic.user?.publicAddress]);
 
     const isDeployed = useCallback(async () => {
-        console.log("isDeployed", address, publicClient);
         if (!address || !publicClient) {
             throw new Error("Smart account address or public client not found");
         }
