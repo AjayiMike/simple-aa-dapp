@@ -23,7 +23,7 @@ export function useSimpleAATokenBalance() {
                     args: [address as Address],
                 })) as bigint;
             } catch (error) {
-                console.error("Error fetching token balance:", error);
+                console.log("Error fetching token balance:", error);
                 return BigInt(0);
             }
         },

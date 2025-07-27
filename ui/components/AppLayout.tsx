@@ -11,6 +11,9 @@ import Loading from "./Loading";
 import { useSimpleAATokenBalance } from "@/hooks/useSimpleAATokenBalance";
 import useBalance from "@/hooks/useBalance";
 import { formatEther } from "viem";
+import useGasSponsorship from "@/hooks/useGasSponsorship";
+import { Switch } from "./ui/switch";
+import { Label } from "./ui/label";
 
 const AppLayout: FC<{ children: React.ReactNode }> = ({ children }) => {
     const [isDisconnectedModalOpen, setIsDisconnectedModalOpen] =
@@ -20,15 +23,15 @@ const AppLayout: FC<{ children: React.ReactNode }> = ({ children }) => {
 
     const { isLoggedIn, isLoginInProgress } = useMagic();
 
+    const { balance: tokenBalance } = useSimpleAATokenBalance();
+
+    const { balance: ethBalance } = useBalance();
+
+    const { gasSponsorship, toggleGasSponsorship } = useGasSponsorship();
+
     if (isLoggedIn === undefined) {
         return <Loading />;
     }
-
-    const { balance: tokenBalance, isLoading: isTokenBalanceLoading } =
-        useSimpleAATokenBalance();
-
-    const { balance: ethBalance, isLoading: isEthBalanceLoading } =
-        useBalance();
 
     return (
         <Fragment>
@@ -37,14 +40,24 @@ const AppLayout: FC<{ children: React.ReactNode }> = ({ children }) => {
                     <h1 className="text-xl font-semibold">Simple AA dApp</h1>
                     <div className="flex">
                         {isLoggedIn ? (
-                            <div className="flex items-center gap-1">
-                                <div className="flex items-center gap-1">
+                            <div className="flex items-center gap-4">
+                                <div className="flex items-center gap-2">
                                     <span>{`${formatEther(
                                         tokenBalance ?? BigInt(0)
                                     )} SAT`}</span>
                                     <span>{`${formatEther(
                                         ethBalance ?? BigInt(0)
                                     )} ETH`}</span>
+                                </div>
+                                <div className="flex items-center space-x-2">
+                                    <Switch
+                                        id="gas-sponsorship"
+                                        checked={gasSponsorship}
+                                        onCheckedChange={toggleGasSponsorship}
+                                    />
+                                    <Label htmlFor="gas-sponsorship">
+                                        Gas Sponsorship
+                                    </Label>
                                 </div>
                                 <Button
                                     onClick={() =>

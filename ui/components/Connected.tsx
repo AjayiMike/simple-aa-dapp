@@ -22,19 +22,10 @@ interface ConnectedProps {
 const Connected: React.FC<ConnectedProps> = ({ isOpen, handleClose }) => {
     const { logout, user } = useMagic();
 
-    const {
-        address: smartAccountAddress,
-        isDeployed,
-        getInitCode,
-    } = useSmartAccount();
+    const { address: smartAccountAddress } = useSmartAccount();
 
-    // console.log({ address, isDeployed, getInitCode });
-
-    const { formattedBalance: formattedSmartAccountBalance } =
-        useBalance(smartAccountAddress);
-    const { formattedBalance: formattedEmbeddedWalletBalance } = useBalance(
-        user?.publicAddress as string
-    );
+    const { formattedBalance: formattedSmartAccountBalance } = useBalance();
+    const { formattedBalance: formattedEmbeddedWalletBalance } = useBalance();
 
     if (!user) {
         return null;
