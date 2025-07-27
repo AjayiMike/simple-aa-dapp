@@ -1,10 +1,11 @@
-import { entryPointAbi } from "@/abis";
+import { entryPointAbi, simpleAccountFactoryAbi } from "@/abis";
 import {
     entryPointAddress,
     simpleAccountFactoryAddress,
 } from "@/constants/config";
 import { IUserOperation } from "@/types/account-abstraction";
 import {
+    Abi,
     Address,
     ContractFunctionExecutionErrorType,
     ContractFunctionRevertedErrorType,
@@ -17,6 +18,7 @@ import {
     WalletClient,
 } from "viem";
 import { signMessage } from "viem/actions";
+import {} from "viem/account-abstraction";
 
 export const getSmartAccountAddress = async (
     initCode: Hex,
@@ -25,32 +27,7 @@ export const getSmartAccountAddress = async (
     try {
         await publicClient.readContract({
             address: entryPointAddress,
-            abi: [
-                {
-                    inputs: [
-                        {
-                            internalType: "bytes",
-                            name: "initCode",
-                            type: "bytes",
-                        },
-                    ],
-                    name: "getSenderAddress",
-                    outputs: [],
-                    stateMutability: "nonpayable",
-                    type: "function",
-                },
-                {
-                    inputs: [
-                        {
-                            internalType: "address",
-                            name: "sender",
-                            type: "address",
-                        },
-                    ],
-                    name: "SenderAddressResult",
-                    type: "error",
-                },
-            ],
+            abi: entryPointAbi as Abi,
             functionName: "getSenderAddress",
             args: [initCode],
         });
@@ -86,18 +63,7 @@ export const getIsSmartAccountDeployed = async (
 
 export const getSmartAccountInitCode = async (owner: Address) => {
     const createAccountFunctionData = encodeFunctionData({
-        abi: [
-            {
-                inputs: [
-                    { name: "owner", type: "address" },
-                    { name: "salt", type: "uint256" },
-                ],
-                name: "createAccount",
-                outputs: [{ name: "ret", type: "address" }],
-                stateMutability: "nonpayable",
-                type: "function",
-            },
-        ],
+        abi: simpleAccountFactoryAbi,
         functionName: "createAccount",
         args: [owner, BigInt(0)],
     });
