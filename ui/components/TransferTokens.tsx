@@ -79,7 +79,7 @@ export function TransferTokens() {
                 error.message.includes("AA21 didn't pay prefund")
             ) {
                 toast.error(
-                    "Error transferring tokens. Insufficient balance to pay for the user operation."
+                    "Error transferring tokens. Insufficient balance to pay for the user operation. Consider enabling gas sponsorship."
                 );
                 return;
             }

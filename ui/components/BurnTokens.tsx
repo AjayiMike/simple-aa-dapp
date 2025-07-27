@@ -71,7 +71,7 @@ export function BurnTokens() {
                 error.message.includes("AA21 didn't pay prefund")
             ) {
                 toast.error(
-                    "Error burning tokens. Insufficient balance to pay for the user operation."
+                    "Error burning tokens. Insufficient balance to pay for the user operation. Consider enabling gas sponsorship."
                 );
                 return;
             }

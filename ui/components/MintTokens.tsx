@@ -71,7 +71,7 @@ export function MintTokens() {
                 error.message.includes("AA21 didn't pay prefund")
             ) {
                 toast.error(
-                    "Error minting tokens. Insufficient balance to pay for the user operation."
+                    "Error minting tokens. Insufficient balance to pay for the user operation. Consider enabling gas sponsorship."
                 );
                 return;
             }
