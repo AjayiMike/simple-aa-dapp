@@ -134,10 +134,10 @@ export function DisperseTokens() {
                             </Label>
                             <Textarea
                                 id="disperse-data"
-                                placeholder="0x...,100,
-0x...,200"
+                                placeholder="0xd5E4484326EB3Dd5FBbd5Def6d02aFE817fD4684,500"
                                 value={inputValue}
                                 onChange={(e) => setInputValue(e.target.value)}
+                                className="text-xs sm:text-sm md:text-base"
                             />
                         </div>
                     </div>

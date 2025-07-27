@@ -35,12 +35,15 @@ const AppLayout: FC<{ children: React.ReactNode }> = ({ children }) => {
 
     return (
         <Fragment>
+            <Toaster />
             <div className="flex flex-col min-h-screen container mx-auto">
-                <header className="p-4 flex justify-between items-center">
-                    <h1 className="text-xl font-semibold">Simple AA dApp</h1>
-                    <div className="flex">
+                <header className="p-4 flex flex-col md:flex-row md:justify-between md:items-center gap-4">
+                    <h1 className="text-xl font-semibold whitespace-nowrap">
+                        Simple AA dApp
+                    </h1>
+                    <div className="flex justify-start md:justify-end w-full">
                         {isLoggedIn ? (
-                            <div className="flex items-center gap-4">
+                            <div className="flex flex-col items-start gap-4 md:flex-row md:items-center">
                                 <div className="flex items-center gap-2">
                                     <span>{`${formatEther(
                                         tokenBalance ?? BigInt(0)
@@ -70,23 +73,26 @@ const AppLayout: FC<{ children: React.ReactNode }> = ({ children }) => {
                                 </Button>
                             </div>
                         ) : (
-                            <Button
-                                onClick={() => setIsDisconnectedModalOpen(true)}
-                                className="flex items-center gap-1"
-                                disabled={isLoginInProgress}
-                            >
-                                {isLoginInProgress ? (
-                                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                                ) : (
-                                    <LogIn className="mr-2 h-4 w-4" />
-                                )}
-                                <span>Connect</span>
-                            </Button>
+                            <div className="flex justify-end w-full">
+                                <Button
+                                    onClick={() =>
+                                        setIsDisconnectedModalOpen(true)
+                                    }
+                                    className="flex items-center gap-1"
+                                    disabled={isLoginInProgress}
+                                >
+                                    {isLoginInProgress ? (
+                                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                                    ) : (
+                                        <LogIn className="mr-2 h-4 w-4" />
+                                    )}
+                                    <span>Connect</span>
+                                </Button>
+                            </div>
                         )}
                     </div>
                 </header>
                 <main className="flex-1 p-4 md:p-8 lg:p-12">{children}</main>
-                <Toaster />
                 <Disconnected
                     isOpen={isDisconnectedModalOpen}
                     handleClose={() => setIsDisconnectedModalOpen(false)}

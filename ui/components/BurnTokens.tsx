@@ -103,6 +103,7 @@ export function BurnTokens() {
                                 placeholder="Amount of tokens to burn"
                                 value={amount}
                                 onChange={handleAmountChange}
+                                className="text-xs sm:text-sm md:text-base"
                             />
                         </div>
                     </div>

@@ -114,6 +114,7 @@ export function TransferTokens() {
                                 onChange={(e) =>
                                     setRecipientAddress(e.target.value)
                                 }
+                                className="text-xs sm:text-sm md:text-base"
                             />
                         </div>
                         <div className="flex flex-col space-y-1.5">
@@ -123,6 +124,7 @@ export function TransferTokens() {
                                 placeholder="Amount of tokens to transfer"
                                 value={amount}
                                 onChange={handleAmountChange}
+                                className="text-xs sm:text-sm md:text-base"
                             />
                         </div>
                     </div>

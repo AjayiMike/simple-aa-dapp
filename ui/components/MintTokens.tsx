@@ -104,6 +104,7 @@ export function MintTokens() {
                                 placeholder="Amount of tokens to mint"
                                 value={amount}
                                 onChange={handleAmountChange}
+                                className="text-xs sm:text-sm md:text-base"
                             />
                         </div>
                     </div>
