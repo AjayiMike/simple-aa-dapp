@@ -30,7 +30,6 @@ const useSmartAccount = () => {
                 publicClient
             );
 
-            console.log("smartAccountAddress", smartAccountAddress);
             setAddress(smartAccountAddress);
         })();
     }, [publicClient, walletClient, magic.user?.publicAddress]);
@@ -78,7 +77,6 @@ const useSmartAccount = () => {
                         calls[0].data ?? "0x",
                     ],
                 });
-            console.log("Calls zzzz: ", calls);
             return encodeFunctionData({
                 abi: simpleAccountAbi,
                 functionName: "executeBatch",
