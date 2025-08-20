@@ -56,7 +56,7 @@ First, we'll set up and deploy the `SimpleAAToken` smart contract.
     From the root of the project, run:
 
     ```bash
-    pnpm contracts deploy
+    pnpm contracts hardhat ignition deploy ignition/modules/SimpleAAToken.ts --network sepolia
     ```
 
     After a successful deployment, take note of the deployed contract address. You will need it for the UI setup.
@@ -64,7 +64,7 @@ First, we'll set up and deploy the `SimpleAAToken` smart contract.
 2.  **Verify on Etherscan:**
 
     ```bash
-    pnpm contracts verify
+    pnpm contracts verify <token address>
     ```
 
 ### 4. Set Up the User Interface

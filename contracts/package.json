@@ -1,21 +1,22 @@
 {
-  "name": "contracts",
-  "version": "1.0.0",
-  "description": "",
-  "main": "index.js",
-  "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
-  },
-  "keywords": [],
-  "author": "",
-  "license": "ISC",
-  "packageManager": "pnpm@10.13.1",
-  "devDependencies": {
-    "@nomicfoundation/hardhat-toolbox-viem": "^4.0.0",
-    "hardhat": "^2.25.0"
-  },
-  "dependencies": {
-    "@openzeppelin/contracts": "^5.3.0",
-    "dotenv": "^17.2.0"
-  }
+    "name": "contracts",
+    "version": "1.0.0",
+    "description": "",
+    "main": "index.js",
+    "scripts": {
+        "hardhat": "hardhat",
+        "verify": "hardhat verify --network sepolia"
+    },
+    "keywords": [],
+    "author": "",
+    "license": "ISC",
+    "packageManager": "pnpm@10.13.1",
+    "devDependencies": {
+        "@nomicfoundation/hardhat-toolbox-viem": "^4.0.0",
+        "hardhat": "^2.25.0"
+    },
+    "dependencies": {
+        "@openzeppelin/contracts": "^5.3.0",
+        "dotenv": "^17.2.0"
+    }
 }
